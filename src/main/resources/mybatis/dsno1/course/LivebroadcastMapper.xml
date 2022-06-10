@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fh.mapper.dsno1.course.LivebroadcastMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		COURSE_LIVEBROADCAST
+	</sql>
+	
+	<!--数据字典表名 -->
+	<sql id="dicTableName">
+		SYS_DICTIONARIES
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		f.TITE,	
+		f.LECTURER,	
+		f.INTRODUCTION,	
+		f.FILEPATH,	
+		f.SUBJECT,	
+		f.CLASSHOUR,	
+		f.CTIME,	
+		f.HTTPFLV,	
+		f.M3U8,	
+		f.RTMP,	
+		f.AUTHORIZED,	
+		f.REMARKS,
+		f.PERSONNEL,	
+		f.PERSONNELID,
+		f.LIVEBROADCAST_ID
+	</sql>
+	
+	<!-- 字段用于新增 -->
+	<sql id="Field2">
+		TITE,	
+		LECTURER,	
+		INTRODUCTION,	
+		FILEPATH,	
+		SUBJECT,	
+		CLASSHOUR,	
+		CTIME,	
+		HTTPFLV,	
+		M3U8,	
+		RTMP,	
+		AUTHORIZED,	
+		REMARKS,	
+		PERSONNEL,	
+		PERSONNELID,
+		LIVEBROADCAST_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{TITE},	
+		#{LECTURER},	
+		#{INTRODUCTION},	
+		#{FILEPATH},	
+		#{SUBJECT},	
+		#{CLASSHOUR},	
+		#{CTIME},	
+		#{HTTPFLV},	
+		#{M3U8},	
+		#{RTMP},	
+		#{AUTHORIZED},	
+		#{REMARKS},	
+		#{PERSONNEL},	
+		#{PERSONNELID},		
+		#{LIVEBROADCAST_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field2"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			LIVEBROADCAST_ID = #{LIVEBROADCAST_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			TITE = #{TITE},
+			LECTURER = #{LECTURER},
+			INTRODUCTION = #{INTRODUCTION},
+			FILEPATH = #{FILEPATH},
+			SUBJECT = #{SUBJECT},
+			CLASSHOUR = #{CLASSHOUR},
+			CTIME = #{CTIME},
+			HTTPFLV = #{HTTPFLV},
+			M3U8 = #{M3U8},
+			RTMP = #{RTMP},
+			AUTHORIZED = #{AUTHORIZED},
+			REMARKS = #{REMARKS},
+			PERSONNEL = #{PERSONNEL},	
+			PERSONNELID = #{PERSONNELID},			
+			LIVEBROADCAST_ID = LIVEBROADCAST_ID
+		where 
+			LIVEBROADCAST_ID = #{LIVEBROADCAST_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+		where 
+			f.LIVEBROADCAST_ID = #{LIVEBROADCAST_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+			d5.BIANMA BIANMA5,
+			d5.NAME DNAME5,
+			d6.BIANMA BIANMA6,
+			d6.NAME DNAME6,
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+			left join 
+			<include refid="dicTableName"></include> d5
+			on f.SUBJECT = d5.BIANMA
+			left join 
+			<include refid="dicTableName"></include> d6
+			on f.CLASSHOUR = d6.BIANMA
+		where 1=1
+		<if test="pd.KEYWORDS != null and pd.KEYWORDS != ''"><!-- 关键词检索 -->
+			and
+				(
+					f.TITE LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%')
+					 or 
+					f.LECTURER LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%')
+					or 
+					f.REMARKS LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%') 
+				)
+		</if>
+		<if test="'admin' != pd.USERNAME">
+			and 
+			(
+				(f.AUTHORIZED = '' or f.AUTHORIZED is null)
+				or 
+				locate(#{pd.ROLE_ID},f.AUTHORIZED)
+			)
+			and 
+			(
+				(f.PERSONNELID = '' or f.PERSONNELID is null)
+				or 
+				locate(#{pd.USERNAME},f.PERSONNELID)
+			)
+		</if>
+		<if test="pd.SUBJECT != null and pd.SUBJECT != ''"><!-- 科目检索 -->
+			and d5.BIANMA = #{pd.SUBJECT}
+		</if>
+		<if test="pd.CLASSHOUR != null and pd.CLASSHOUR != ''"><!-- 课时检索 -->
+			and d6.BIANMA = #{pd.CLASSHOUR}
+		</if>
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			LIVEBROADCAST_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- fh313596790qq(青苔) -->
+</mapper>

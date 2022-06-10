@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fh.mapper.dsno1.exam.CompletionMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		EXAM_COMPLETION
+	</sql>
+	
+	<!--数据字典表名 -->
+	<sql id="dicTableName">
+		SYS_DICTIONARIES
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		f.TITLE,	
+		f.FILEPATH,	
+		f.ANSWER,	
+		f.TYPE,	
+		f.LEVEL,	
+		f.STATE,	
+		f.REMARKS,	
+		f.COMPLETION_ID
+	</sql>
+	
+	<!-- 字段用于新增 -->
+	<sql id="Field2">
+		TITLE,	
+		FILEPATH,	
+		ANSWER,	
+		TYPE,	
+		LEVEL,	
+		STATE,	
+		REMARKS,	
+		COMPLETION_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{TITLE},	
+		#{FILEPATH},	
+		#{ANSWER},	
+		#{TYPE},	
+		#{LEVEL},	
+		#{STATE},	
+		#{REMARKS},	
+		#{COMPLETION_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field2"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			COMPLETION_ID = #{COMPLETION_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			TITLE = #{TITLE},
+			FILEPATH = #{FILEPATH},
+			ANSWER = #{ANSWER},
+			TYPE = #{TYPE},
+			LEVEL = #{LEVEL},
+			STATE = #{STATE},
+			REMARKS = #{REMARKS},
+			COMPLETION_ID = COMPLETION_ID
+		where 
+			COMPLETION_ID = #{COMPLETION_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+		where 
+			f.COMPLETION_ID = #{COMPLETION_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+			d4.BIANMA BIANMA4,
+			d4.NAME DNAME4,
+			d5.BIANMA BIANMA5,
+			d5.NAME DNAME5,
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+			left join 
+			<include refid="dicTableName"></include> d4
+			on f.TYPE = d4.BIANMA
+			left join 
+			<include refid="dicTableName"></include> d5
+			on f.LEVEL = d5.BIANMA
+		where 1=1
+		<if test="pd.KEYWORDS != null and pd.KEYWORDS != ''"><!-- 关键词检索 -->
+			and
+				(
+					f.TITLE LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%')
+				)
+		</if>
+		<if test="pd.TYPE != null and pd.TYPE != ''"><!-- 类型检索 -->
+			and d4.BIANMA = #{pd.TYPE}
+		</if>
+		<if test="pd.LEVEL != null and pd.LEVEL != ''"><!-- 级别检索 -->
+			and d5.BIANMA = #{pd.LEVEL}
+		</if>
+		<if test="pd.STATE != null and pd.STATE != ''"><!-- 状态 -->
+			and f.STATE = #{pd.STATE}
+		</if>
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			COMPLETION_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+
+	<!-- 根据ID组获取数据 -->
+	<select id="getListByIDS" parameterType="String" resultType="pd">
+		select
+			d1.NAME DNAME1,
+			d2.NAME DNAME2,
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+			left join 
+			<include refid="dicTableName"></include> d1
+			on f.TYPE = d1.BIANMA
+			left join 
+			<include refid="dicTableName"></include> d2
+			on f.LEVEL = d2.BIANMA
+		where
+			f.COMPLETION_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</select>
+	
+	<!-- fh313596790qq(青苔) -->
+</mapper>

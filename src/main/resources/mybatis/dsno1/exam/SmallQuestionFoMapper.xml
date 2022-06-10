@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fh.mapper.dsno1.exam.SmallQuestionFoMapper">
+	
+	<!--表名临时 -->
+	<sql id="teTableName">
+		EXAM_SMALLQUESTIONTE
+	</sql>
+	
+	<!--表名正式 -->
+	<sql id="tableName">
+		EXAM_SMALLQUESTIONFO
+	</sql>
+	
+	<!--单选题表名 -->
+	<sql id="stableName">
+		EXAM_SINGLEELECTION
+	</sql>
+	
+	<!--多选题表名 -->
+	<sql id="mtableName">
+		EXAM_MULTIPLESELECTION
+	</sql>
+	
+	<!--判断题表名 -->
+	<sql id="jtableName">
+		EXAM_JUDGEMENTQUESTION
+	</sql>
+	
+	<!--成绩表名 -->
+	<sql id="atableName">
+		EXAM_ACHIEVEMENT
+	</sql>
+	
+	<!--数据字典表名 -->
+	<sql id="dicTableName">
+		SYS_DICTIONARIES
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		f.TESTPAPER_ID,	
+		f.EXAMINATIONRECORD_ID,	
+		f.QUESTIONS_ID,	
+		f.USERNAME,	
+		f.USERANSWER,	
+		f.CORRECTANSWER,	
+		f.RESULT,	
+		f.SCORE,	
+		f.TYPE,	
+		f.SMALLQUESTIONFO_ID
+	</sql>
+	
+	<!-- 字段临时  -->
+	<sql id="teField">
+		f.TESTPAPER_ID,	
+		f.EXAMINATIONRECORD_ID,	
+		f.QUESTIONS_ID,	
+		f.USERNAME,	
+		f.USERANSWER,	
+		f.CORRECTANSWER,	
+		f.RESULT,	
+		f.SCORE,	
+		f.TYPE,	
+		f.SMALLQUESTIONTE_ID
+	</sql>
+	
+	<!-- 字段用于新增 -->
+	<sql id="Field2">
+		TESTPAPER_ID,	
+		EXAMINATIONRECORD_ID,	
+		QUESTIONS_ID,	
+		USERNAME,	
+		USERANSWER,	
+		CORRECTANSWER,	
+		RESULT,	
+		SCORE,	
+		TYPE,	
+		SMALLQUESTIONFO_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{TESTPAPER_ID},	
+		#{EXAMINATIONRECORD_ID},	
+		#{QUESTIONS_ID},	
+		#{USERNAME},	
+		#{USERANSWER},	
+		#{CORRECTANSWER},	
+		#{RESULT},	
+		#{SCORE},	
+		#{TYPE},	
+		#{SMALLQUESTIONFO_ID}
+	</sql>
+	
+	<!-- 复制表-->
+	<insert id="save" parameterType="pd">
+			insert into 
+		<include refid="tableName"></include>
+			(
+		<include refid="Field2"></include>
+			) select 
+		<include refid="teField"></include>
+			from 
+		<include refid="teTableName"></include> f
+		where 
+			EXAMINATIONRECORD_ID = #{EXAMINATIONRECORD_ID}
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			SMALLQUESTIONFO_ID = #{SMALLQUESTIONFO_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			SMALLQUESTIONFO_ID = SMALLQUESTIONFO_ID
+		where 
+			SMALLQUESTIONFO_ID = #{SMALLQUESTIONFO_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+		where 
+			f.SMALLQUESTIONFO_ID = #{SMALLQUESTIONFO_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select 
+			<include refid="Field"></include>,
+			s.TITLE TITLE1,
+			m.TITLE TITLE2,
+			j.TITLE TITLE3
+		from 
+			<include refid="tableName"></include> f
+		left join
+			<include refid="stableName"></include> s
+		on
+			f.QUESTIONS_ID = s.SINGLEELECTION_ID
+		and
+			f.TYPE = 'A'
+		left join
+			<include refid="mtableName"></include> m
+		on
+			f.QUESTIONS_ID = m.MULTIPLESELECTION_ID
+		and
+			f.TYPE = 'B'
+		left join
+			<include refid="jtableName"></include> j
+		on
+			f.QUESTIONS_ID = j.JUDGEMENTQUESTION_ID
+			and
+			f.TYPE = 'C'
+		where 1 = 1
+		<if test="pd.KEYWORDS != null and pd.KEYWORDS != ''"><!-- 关键词检索 -->
+			and
+				(
+					s.TITLE LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%')
+					or
+					m.TITLE LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%')
+					or
+					j.TITLE LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%')
+				)
+		</if>
+		and 
+			f.SMALLQUESTIONFO_ID
+		in 
+			(
+				select  max(r.SMALLQUESTIONFO_ID)
+				from 
+					<include refid="tableName"></include> r
+				where 
+				 	r.RESULT = 'false' 
+				and 
+				 	r.USERNAME = #{pd.USERNAME}
+				group by r.QUESTIONS_ID
+			)
+		and 
+			f.EXAMINATIONRECORD_ID
+		in 
+			(
+				select a.EXAMINATIONRECORD_ID 
+				from 
+					<include refid="atableName"></include> a 
+				where 
+					a.USERNAME = #{pd.USERNAME} 
+				and 
+					a.STATE = 'out'
+			)
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+		where
+			f.EXAMINATIONRECORD_ID = #{EXAMINATIONRECORD_ID}
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			SMALLQUESTIONFO_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 统计 -->
+	<select id="statistics" parameterType="pd" resultType="pd">
+		select
+			count(*) zs
+		from 
+			<include refid="tableName"></include>
+		where
+			TESTPAPER_ID = #{TESTPAPER_ID}
+		and
+			QUESTIONS_ID = #{QUESTIONS_ID}
+		<if test="FR == 'true'">
+			and RESULT = #{RESULT}
+		</if>
+		<if test="FR == 'false'">
+			and USERANSWER like CONCAT(CONCAT('%', #{USERANSWER}),'%')
+		</if>
+	</select>
+	
+	<!-- 查询总数 -->
+	<select id="findCount" parameterType="pd" resultType="pd">
+		select
+			count(*) zs
+		from 
+			<include refid="tableName"></include>
+		where
+			EXAMINATIONRECORD_ID = #{EXAMINATIONRECORD_ID}
+		<if test="FR == 'true'">
+			and RESULT = 'true'
+		</if>
+		<if test="FR == 'false'">
+			and RESULT = 'false'
+		</if>
+	</select>
+	
+	<!-- 查询获得总分 -->
+	<select id="findZFraction" parameterType="pd" resultType="pd">
+		select
+			SUM(SCORE) zf
+		from 
+			<include refid="tableName"></include>
+		where
+			EXAMINATIONRECORD_ID = #{EXAMINATIONRECORD_ID}
+		and 
+			RESULT = 'true'
+	</select>
+	
+	<!-- fh313596790qq(青苔) -->
+</mapper>

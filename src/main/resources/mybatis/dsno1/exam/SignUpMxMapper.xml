@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fh.mapper.dsno1.exam.SignUpMxMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		EXAM_SIGNUPMX
+	</sql>
+	
+	<!--主表名 -->
+	<sql id="zhuTableName">
+		EXAM_SIGNUP
+	</sql>
+	
+	<!--数据字典表名 -->
+	<sql id="dicTableName">
+		SYS_DICTIONARIES
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		f.USERNAME,	
+		f.NAME,	
+		f.SEX,	
+		f.SFID,	
+		f.PHOTO,	
+		f.OTHERS,	
+		f.STATE,	
+		f.ROOM,	
+		f.SEAT,	
+		f.CTIME,
+		f.TICKET,
+		f.SIGNUPMX_ID,
+		f.SIGNUP_ID
+	</sql>
+	
+	<!-- 字段用于新增 -->
+	<sql id="Field2">
+		USERNAME,	
+		NAME,	
+		SEX,	
+		SFID,	
+		PHOTO,	
+		OTHERS,	
+		STATE,	
+		ROOM,	
+		SEAT,	
+		CTIME,
+		TICKET,
+		SIGNUPMX_ID,
+		SIGNUP_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{USERNAME},	
+		#{NAME},	
+		#{SEX},	
+		#{SFID},	
+		#{PHOTO},	
+		#{OTHERS},	
+		#{STATE},	
+		#{ROOM},	
+		#{SEAT},
+		#{CTIME},	
+		#{TICKET},
+		#{SIGNUPMX_ID},
+		#{SIGNUP_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field2"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			SIGNUPMX_ID = #{SIGNUPMX_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			OTHERS = #{OTHERS},
+			STATE = #{STATE},
+			ROOM = #{ROOM},
+			SEAT = #{SEAT}
+		where 
+			SIGNUPMX_ID = #{SIGNUPMX_ID}
+	</update>
+	
+	<!-- 批量审核通过 -->
+	<update id="updateYesAll" parameterType="String">
+		update
+		<include refid="tableName"></include>
+		set 
+			STATE = 'yes'
+		where 
+			SIGNUPMX_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</update>
+	
+	<!-- 批量审核不通过 -->
+	<update id="updateNoAll" parameterType="String">
+		update
+		<include refid="tableName"></include>
+		set 
+			STATE = 'no'
+		where 
+			SIGNUPMX_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+		where 1 = 1
+			<if test="SIGNUPMX_ID != null and SIGNUPMX_ID != ''">
+				and f.SIGNUPMX_ID = #{SIGNUPMX_ID}
+			</if>
+			<if test="SIGNUP_ID != null and SIGNUP_ID != ''">
+				and f.SIGNUP_ID = #{SIGNUP_ID}
+				and f.USERNAME = #{USERNAME}
+			</if>
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+			f.USERNAME,	
+			f.NAME,	
+			f.SEX,	
+			f.SFID,	
+			f.PHOTO,	
+			f.OTHERS,	
+			f.STATE,	
+			f.ROOM,	
+			f.SEAT,	
+			f.CTIME,
+			f.SIGNUPMX_ID,
+			f.SIGNUP_ID,
+			f.TICKET,
+			z.KSTITLE
+		from 
+		<include refid="tableName"></include> f
+		left join 
+		<include refid="zhuTableName"></include> z
+		on f.SIGNUP_ID = z.SIGNUP_ID
+		where 1 = 1
+		<if test="pd.SIGNUP_ID != null and pd.SIGNUP_ID != ''">
+			and f.SIGNUP_ID = #{pd.SIGNUP_ID}
+		</if>
+		<if test="pd.USERNAME!= null and pd.USERNAME != ''">
+			and f.USERNAME = #{pd.USERNAME}
+		</if>
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+				(
+					f.NAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+					 or 
+					f.USERNAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') 
+					 or 
+					z.KSTITLE LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') 
+					 or 
+					f.TICKET LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') 
+				)
+		</if>
+		order by f.STATE
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			SIGNUPMX_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 查询明细总数 -->
+	<select id="findCount" parameterType="pd" resultType="pd">
+		select
+			count(*) zs
+		from 
+			<include refid="tableName"></include>
+		where
+			SIGNUP_ID = #{SIGNUP_ID}
+	</select>
+	
+	<!-- fh313596790qq(青苔) -->
+</mapper>

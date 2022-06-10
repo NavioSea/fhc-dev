@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fh.mapper.dsno1.exam.TestPaperMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		EXAM_TESTPAPER
+	</sql>
+	
+	<!--考试记录表 -->
+	<sql id="ETableName">
+		EXAM_EXAMINATIONRECORD
+	</sql>
+	
+	<!--数据字典表名 -->
+	<sql id="dicTableName">
+		SYS_DICTIONARIES
+	</sql>
+	
+	<!--报名明细表表名 -->
+	<sql id="sgmxableName">
+		EXAM_SIGNUPMX
+	</sql>
+	
+	<!--报名试卷表名 -->
+	<sql id="sgtestableName">
+		EXAM_SIGNUP_TEST
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		f.TITLE,	
+		f.PAPERTYPE,	
+		f.TOTALSCORE,	
+		f.PASSINGSCORE,	
+		f.DURATION,	
+		f.STATE,	
+		f.ETIME,	
+		f.EVALUATIONRESULTS,	
+		f.FREPEAT,	
+		f.PUBLISHANSWER,	
+		f.EXAMINEE,	
+		f.REMARKS,
+		f.FHORDER,
+		f.OTIME,
+		f.FOTIME,
+		f.FTWICE,
+		f.FACE,
+		f.SIGNUP,
+		f.ISALONE,
+		f.PERSONNEL,	
+		f.PERSONNELID,
+		f.TESTPAPER_ID
+	</sql>
+	
+	<!-- 字段用于新增 -->
+	<sql id="Field2">
+		TITLE,	
+		PAPERTYPE,	
+		TOTALSCORE,	
+		PASSINGSCORE,	
+		DURATION,	
+		STATE,	
+		ETIME,	
+		EVALUATIONRESULTS,	
+		FREPEAT,	
+		PUBLISHANSWER,	
+		EXAMINEE,	
+		REMARKS,
+		FHORDER,
+		OTIME,
+		FOTIME,
+		FTWICE,
+		FACE,
+		SIGNUP,
+		ISALONE,
+		PERSONNEL,	
+		PERSONNELID,		
+		TESTPAPER_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{TITLE},	
+		#{PAPERTYPE},	
+		#{TOTALSCORE},	
+		#{PASSINGSCORE},	
+		#{DURATION},	
+		#{STATE},	
+		#{ETIME},	
+		#{EVALUATIONRESULTS},	
+		#{FREPEAT},	
+		#{PUBLISHANSWER},	
+		#{EXAMINEE},	
+		#{REMARKS},
+		#{FHORDER},
+		#{OTIME},
+		#{FOTIME},
+		#{FTWICE},
+		#{FACE},
+		#{SIGNUP},
+		#{ISALONE},
+		#{PERSONNEL},	
+		#{PERSONNELID},		
+		#{TESTPAPER_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field2"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			TESTPAPER_ID = #{TESTPAPER_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			TITLE = #{TITLE},
+			PAPERTYPE = #{PAPERTYPE},
+			TOTALSCORE = #{TOTALSCORE},
+			PASSINGSCORE = #{PASSINGSCORE},
+			DURATION = #{DURATION},
+			STATE = #{STATE},
+			EVALUATIONRESULTS = #{EVALUATIONRESULTS},
+			FREPEAT = #{FREPEAT},
+			PUBLISHANSWER = #{PUBLISHANSWER},
+			EXAMINEE = #{EXAMINEE},
+			REMARKS = #{REMARKS},
+			FHORDER = #{FHORDER},
+			OTIME = #{OTIME},
+			FOTIME = #{FOTIME},
+			FTWICE = #{FTWICE},
+			FACE = #{FACE},
+			SIGNUP = #{SIGNUP},
+			ISALONE = #{ISALONE},
+			PERSONNEL = #{PERSONNEL},	
+			PERSONNELID = #{PERSONNELID},			
+			TESTPAPER_ID = TESTPAPER_ID
+		where 
+			TESTPAPER_ID = #{TESTPAPER_ID}
+	</update>
+	
+	<!-- 修改状态 -->
+	<update id="editState" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			ETIME = #{ETIME},
+			STATE = #{STATE}
+		where 
+			TESTPAPER_ID = #{TESTPAPER_ID}
+	</update>
+	
+	<!-- 修改总分 -->
+	<update id="editTot" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			TOTALSCORE = #{TOTALSCORE}
+		where 
+			TESTPAPER_ID = #{TESTPAPER_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+		where 
+			f.TESTPAPER_ID = #{TESTPAPER_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+			d2.BIANMA BIANMA2,
+			d2.NAME DNAME2,
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+			left join 
+			<include refid="dicTableName"></include> d2
+			on f.PAPERTYPE = d2.BIANMA
+		where 1=1
+		<if test="pd.KEYWORDS != null and pd.KEYWORDS != ''"><!-- 关键词检索 -->
+			and
+				(
+					f.TITLE LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%')
+					 or 
+					f.REMARKS LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%') 
+				)
+		</if>
+		<if test="pd.PAPERTYPE != null and pd.PAPERTYPE != ''"><!-- 类型检索 -->
+			and d2.BIANMA = #{pd.PAPERTYPE}
+		</if>
+		<if test="pd.STATE != null and pd.STATE != ''"><!-- 状态检索 -->
+			and f.STATE = #{pd.STATE}
+		</if>
+	</select>
+	
+	<!-- 列表(我可参加的考试) -->
+	<select id="myDdatalistPage" parameterType="page" resultType="pd">
+		select
+			d2.BIANMA BIANMA2,
+			d2.NAME DNAME2,
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+			left join 
+		<include refid="dicTableName"></include> d2
+			on f.PAPERTYPE = d2.BIANMA
+		where 
+			f.STATE = 'release'
+		<if test="pd.KEYWORDS != null and pd.KEYWORDS != ''"><!-- 关键词检索 -->
+			and
+				(
+					f.TITLE LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%')
+					 or 
+					f.REMARKS LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%') 
+				)
+		</if>
+		<if test="'admin' != pd.USERNAME">
+			and 
+			(
+				(f.EXAMINEE = '' or f.EXAMINEE is null)
+				or 
+				locate(#{pd.ROLE_ID},f.EXAMINEE)
+			)
+			and 
+			(
+				(f.PERSONNELID = '' or f.PERSONNELID is null)
+				or 
+				locate(#{pd.USERNAME},f.PERSONNELID)
+			)
+			and 
+			(
+				(
+					f.SIGNUP = 'true'
+					and
+					f.TESTPAPER_ID in (select m.TESTPAPER_ID from <include refid="sgtestableName"></include> m where m.SIGNUP_ID in (select n.SIGNUP_ID from <include refid="sgmxableName"></include> n where n.USERNAME = #{pd.USERNAME} and n.STATE = 'yes'))
+				)
+				or
+					f.SIGNUP = 'false'
+			)
+			and 
+			(
+				(
+					f.FREPEAT = 'true'
+					and
+					(
+						(SELECT COUNT(e.EXAMINATIONRECORD_ID) zs from <include refid="ETableName"></include> e where e.TESTPAPER_ID = f.TESTPAPER_ID and e.USERNAME = #{pd.USERNAME}) &lt; 2
+						or
+						f.FTWICE = 'false'
+					)
+				)
+				 or 
+				(
+					f.FREPEAT = 'false' 
+					and 
+					f.TESTPAPER_ID not in 
+					(
+						select a.TESTPAPER_ID from <include refid="ETableName"></include> a where a.USERNAME = #{pd.USERNAME}
+					)
+				)
+			)
+		</if>
+		<if test="pd.PAPERTYPE != null and pd.PAPERTYPE != ''"><!-- 类型检索 -->
+			and d2.BIANMA = #{pd.PAPERTYPE}
+		</if>
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+		where 1 = 1
+		<if test="TESTLIST == 'true'">
+			and f.STATE = 'release'
+			or	f.STATE = 'end'
+		</if>
+		<if test="TESTLIST == 'nogrant'">
+			and f.STATE = 'edit'
+		</if>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			TESTPAPER_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- fh313596790qq(青苔) -->
+</mapper>

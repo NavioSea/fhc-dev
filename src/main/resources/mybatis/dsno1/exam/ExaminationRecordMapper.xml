@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fh.mapper.dsno1.exam.ExaminationRecordMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		EXAM_EXAMINATIONRECORD
+	</sql>
+	
+	<!--试卷表名 -->
+	<sql id="PtableName">
+		EXAM_TESTPAPER
+	</sql>
+	
+	<!--系统用户表名 -->
+	<sql id="userTableName">
+		SYS_USER
+	</sql>
+	
+	<!--数据字典表名 -->
+	<sql id="dicTableName">
+		SYS_DICTIONARIES
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		f.TESTPAPER_ID,	
+		f.USERNAME,	
+		f.CTIME,	
+		f.ETIME,	
+		f.STATE,	
+		f.EXAMINATIONRECORD_ID
+	</sql>
+	
+	<!-- 字段用于新增 -->
+	<sql id="Field2">
+		TESTPAPER_ID,	
+		USERNAME,	
+		CTIME,	
+		ETIME,	
+		STATE,	
+		EXAMINATIONRECORD_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{TESTPAPER_ID},	
+		#{USERNAME},	
+		#{CTIME},	
+		#{ETIME},	
+		#{STATE},	
+		#{EXAMINATIONRECORD_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field2"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+		<if test="EXAMINATIONRECORD_ID != null and EXAMINATIONRECORD_ID != ''">
+			EXAMINATIONRECORD_ID = #{EXAMINATIONRECORD_ID}
+		</if>
+		<if test="TESTPAPER_ID != null and TESTPAPER_ID != ''">
+			TESTPAPER_ID = #{TESTPAPER_ID}
+		</if>
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			ETIME = #{ETIME},
+			STATE = #{STATE}
+		where 
+			EXAMINATIONRECORD_ID = #{EXAMINATIONRECORD_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+		where 
+			f.EXAMINATIONRECORD_ID = #{EXAMINATIONRECORD_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+			p.TITLE,
+			u.NAME,
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+		left join 
+		<include refid="PtableName"></include> p
+		on f.TESTPAPER_ID = p.TESTPAPER_ID
+		left join 
+			<include refid="userTableName"></include> u 
+		on 	f.USERNAME = u.USERNAME
+		where 1=1
+		<if test="pd.KEYWORDS != null and pd.KEYWORDS != ''"><!-- 关键词检索 -->
+			and
+				(
+					p.TITLE LIKE CONCAT(CONCAT('%', #{pd.KEYWORDS}),'%')
+				)
+		</if>
+		<if test="pd.USERNAME!= null and pd.USERNAME != ''">
+			and f.USERNAME = #{pd.USERNAME}
+		</if>
+		<if test="pd.TESTPAPER_ID != null and pd.TESTPAPER_ID != ''">
+			and f.TESTPAPER_ID = #{pd.TESTPAPER_ID}
+		</if>
+		order by f.CTIME desc
+	</select>
+	
+	<!-- 获得总数 -->
+	<select id="getCount" parameterType="pd" resultType="pd">
+		select
+			count(EXAMINATIONRECORD_ID) ZS
+		from 
+		<include refid="tableName"></include>
+		where
+			USERNAME = #{USERNAME}
+		and 
+			TESTPAPER_ID = #{TESTPAPER_ID}
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			EXAMINATIONRECORD_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- fh313596790qq(青苔) -->
+</mapper>
